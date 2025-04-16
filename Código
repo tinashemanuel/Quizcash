@@ -9,21 +9,39 @@ export default function MathRushGame() {
   const [timeLeft, setTimeLeft] = useState(10);
   const [showResult, setShowResult] = useState(false);
 
-  // Gera perguntas únicas
+  const correctAudio = new Audio("/sounds/correct.mp3");
+  const wrongAudio = new Audio("/sounds/wrong.mp3");
+
   const generateQuestions = () => {
-    const ops = ["+", "-", "x"];
+    const ops = ["+", "-", "*", "/"];
     const newQuestions = new Set();
+
     while (newQuestions.size < 5) {
-      const num1 = Math.floor(Math.random() * 10 + 1);
-      const num2 = Math.floor(Math.random() * 10 + 1);
+      const num1 = Math.floor(Math.random() * 20 + 1);
+      const num2 = Math.floor(Math.random() * 20 + 1);
       const op = ops[Math.floor(Math.random() * ops.length)];
-      const q = `${num1} ${op} ${num2}`;
-      let a = 0;
-      if (op === "+") a = num1 + num2;
-      else if (op === "-") a = num1 - num2;
-      else a = num1 * num2;
-      newQuestions.add(JSON.stringify({ q, a }));
+
+      let question = "";
+      let answer = 0;
+
+      if (op === "+") {
+        question = `${num1} + ${num2}`;
+        answer = num1 + num2;
+      } else if (op === "-") {
+        question = `${num1} - ${num2}`;
+        answer = num1 - num2;
+      } else if (op === "*") {
+        question = `${num1} × ${num2}`;
+        answer = num1 * num2;
+      } else if (op === "/") {
+        const product = num1 * num2;
+        question = `${product} ÷ ${num1}`;
+        answer = num2;
+      }
+
+      newQuestions.add(JSON.stringify({ q: question, a: answer }));
     }
+
     return Array.from(newQuestions).map((q) => JSON.parse(q));
   };
 
@@ -38,16 +56,21 @@ export default function MathRushGame() {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
-      handleSubmit(false); // Tempo acabou, contar como erro
+      handleSubmit(false);
     }
   }, [timeLeft]);
 
   const handleSubmit = (manual = true) => {
     const correct = parseInt(answer) === currentQuestion.a;
+
     if (correct) {
+      correctAudio.play();
       const bonus = Math.max(0, timeLeft);
       setScore(score + 10 + bonus);
+    } else {
+      wrongAudio.play();
     }
+
     setAnswer("");
     if (questionIndex + 1 < 5) {
       const next = questions[questionIndex + 1];

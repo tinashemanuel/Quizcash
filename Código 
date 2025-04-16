@@ -1,0 +1,77 @@
+import React, { useState, useEffect } from "react";
+
+export default function MathRushGame() {
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [questions, setQuestions] = useState([
+    { q: "5 + 3", a: 8 },
+    { q: "7 x 2", a: 14 },
+    { q: "12 - 4", a: 8 },
+    { q: "9 / 3", a: 3 },
+    { q: "6 x 6", a: 36 },
+  ]);
+  const [answer, setAnswer] = useState("");
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(10);
+  const [showResult, setShowResult] = useState(false);
+
+  useEffect(() => {
+    if (timeLeft > 0 && questionIndex < questions.length) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      handleSubmit();
+    }
+  }, [timeLeft]);
+
+  const handleSubmit = () => {
+    const correctAnswer = questions[questionIndex].a;
+    if (parseInt(answer) === correctAnswer) {
+      const timeBonus = Math.max(0, timeLeft);
+      setScore(score + 10 + timeBonus);
+    }
+    if (questionIndex + 1 < questions.length) {
+      setQuestionIndex(questionIndex + 1);
+      setAnswer("");
+      setTimeLeft(10);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-blue-100 flex flex-col items-center justify-center p-4">
+      <h1 className="text-3xl font-bold mb-6">MathRush</h1>
+      {!showResult ? (
+        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md text-center">
+          <p className="text-xl mb-4">Pergunta {questionIndex + 1}/5</p>
+          <p className="text-2xl font-semibold mb-2">{questions[questionIndex].q}</p>
+          <input
+            type="number"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            className="border rounded px-4 py-2 mb-4 w-full"
+          />
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-500 text-white px-6 py-2 rounded-xl hover:bg-blue-600"
+          >
+            Responder
+          </button>
+          <div className="mt-4 text-gray-700">Tempo restante: {timeLeft}s</div>
+          <div className="mt-2 font-bold">Pontuação: {score}</div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md text-center">
+          <h2 className="text-2xl font-bold mb-4">Fim do Jogo</h2>
+          <p className="text-xl mb-2">Pontuação Final: {score}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-green-500 text-white px-6 py-2 rounded-xl hover:bg-green-600"
+          >
+            Jogar Novamente
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
